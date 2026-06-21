@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Assistente Inteligente do Campus</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+	<div class="app">
+		<header class="topbar">
+			<div class="brand">
+				<div class="brand-mark" aria-hidden="true">
+					<img src="img/academia-logo.png" alt="" />
+				</div>
+				<div class="brand-text">
+					<h1>Assistente Inteligente do Campus</h1>
+					<p>Pergunte sobre editais, regulamentos e matrizes — respostas com fonte.</p>
+				</div>
+			</div>
+		</header>
+
+		<main class="main">
+			<section class="hero" aria-label="Assistente de documentos">
+				<div class="hero-icon" aria-hidden="true">
+					<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+						<path d="M14 2v5h5" />
+						<path d="M9 13h6" />
+						<path d="M9 17h6" />
+						<path d="M9 9h2" />
+					</svg>
+				</div>
+
+				<div class="hero-copy">
+					<p class="hero-label">Assistente de documentos</p>
+					<h2>Comece anexando um PDF</h2>
+					<p>Envie editais, regulamentos ou a matriz curricular. Depois faça perguntas em linguagem natural e as respostas citarão a fonte.</p>
+				</div>
+
+				<div class="conversation-panel" id="conversationPanel" aria-live="polite"></div>
+
+				<div class="dropzone" id="dropzone">
+					Arraste e solte um PDF aqui ou use o botão de anexo.
+				</div>
+
+				<div class="upload-list" id="uploadList" aria-live="polite"></div>
+
+				<div class="suggestions" aria-label="Sugestões de perguntas">
+					<button class="suggestion" type="button" data-question="Qual o prazo de inscrição do edital?">Qual o prazo de inscrição do edital?</button>
+					<button class="suggestion" type="button" data-question="Quais disciplinas obrigatórias no 3º semestre?">Quais disciplinas obrigatórias no 3º semestre?</button>
+					<button class="suggestion" type="button" data-question="Como funciona o trancamento de matrícula?">Como funciona o trancamento de matrícula?</button>
+				</div>
+			</section>
+		</main>
+
+		<footer class="composer-wrap">
+			<div class="composer-card">
+				<div class="composer-row">
+					<button class="icon-button" id="attachButton" type="button" aria-label="Anexar PDF">
+						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 1 1-7.78-7.78l8.49-8.49a3.5 3.5 0 1 1 4.95 4.95L9.81 18.05a1.5 1.5 0 1 1-2.12-2.12l8.84-8.84" />
+						</svg>
+					</button>
+
+					<div class="input-shell">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M6 18V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13" />
+							<path d="M6 18h12" />
+							<path d="M9 7h6" />
+							<path d="M9 11h6" />
+						</svg>
+						<textarea id="questionInput" rows="1" placeholder="Pergunte algo sobre os documentos..."></textarea>
+					</div>
+
+					<button class="send-button" id="sendButton" type="button" aria-label="Enviar pergunta">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M22 2L11 13" />
+							<path d="M22 2l-7 20-4-9-9-4 20-7z" />
+						</svg>
+					</button>
+				</div>
+				<div class="helper">As respostas são baseadas exclusivamente nos PDFs enviados. Pressione Enter para enviar, Shift+Enter para quebrar linha.</div>
+			</div>
+		</footer>
+	</div>
+
+	<input class="visually-hidden" id="fileInput" type="file" accept="application/pdf" multiple />
+
+	<script>
+    const fileInput = document.getElementById('fileInput');
+    const attachButton = document.getElementById('attachButton');
+    const dropzone = document.getElementById('dropzone');
+    const uploadList = document.getElementById('uploadList');
+    const conversationPanel = document.getElementById('conversationPanel');
+    const questionInput = document.getElementById('questionInput');
+    const sendButton = document.getElementById('sendButton');
+    const suggestionButtons = document.querySelectorAll('.suggestion');
+
+    const files = [];
+
+    // URL DO SEU BACK-END PYTHON
+    const BASE_URL = "http://localhost:8000";
+
+    function formatSize(bytes) {
+        if (!bytes) return '0 KB';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let value = bytes;
+        let index = 0;
+        while (value >= 1024 && index < units.length - 1) {
+            value /= 1024;
+            index += 1;
+        }
+        return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+    }
+
+    function renderFiles() {
+        uploadList.innerHTML = '';
+
+        if (!files.length) {
+            return;
+        }
+
+        files.forEach((file) => {
+            const item = document.createElement('div');
+            item.className = 'upload-item';
+            item.innerHTML = `
+                <div class="upload-meta">
+                    <strong title="${file.name}">${file.name}</strong>
+                    <span>${formatSize(file.size)} · PDF carregado</span>
+                </div>
+                <div class="chip" id="status-${file.name.replace(/[^a-zA-Z0-9]/g, '')}">Enviando...</div>
+            `;
+            uploadList.appendChild(item);
+        });
+    }
+
+    function addConversationItem(role, text) {
+        conversationPanel.classList.add('is-visible');
+        const item = document.createElement('div');
+        item.className = `conversation-item ${role}`;
+        item.textContent = text;
+        conversationPanel.appendChild(item);
+        conversationPanel.scrollTop = conversationPanel.scrollHeight;
+        return item; // Retornamos o elemento para podermos alterá-lo depois (ex: tirar o "Pensando...")
+    }
+
+    // ---------------------------------------------------------
+    // INTEGRAÇÃO 1: FUNÇÃO PARA ENVIAR O PDF PARA O BACK-END
+    // ---------------------------------------------------------
+    async function uploadFileToBackend(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const statusChip = document.getElementById(`status-${file.name.replace(/[^a-zA-Z0-9]/g, '')}`);
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            if(statusChip) statusChip.textContent = "Pronto para RAG";
+            console.log(data.mensagem);
+        } catch (error) {
+            console.error("Erro no upload:", error);
+            if(statusChip) {
+                statusChip.textContent = "Erro no envio";
+                statusChip.style.backgroundColor = "#ffcccc"; // Feedback visual de erro
+            }
+        }
+    }
+
+    function addFiles(selectedFiles) {
+        const pdfFiles = Array.from(selectedFiles).filter((file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
+        if (!pdfFiles.length) {
+            dropzone.textContent = 'Somente arquivos PDF são aceitos.';
+            return;
+        }
+
+        pdfFiles.forEach((file) => {
+            if (!files.some((existing) => existing.name === file.name && existing.size === file.size)) {
+                files.push(file);
+                renderFiles(); // Renderiza na tela primeiro
+                uploadFileToBackend(file); // Dispara o envio para o Python em segundo plano
+            }
+        });
+
+        dropzone.textContent = files.length > 1 ? `${files.length} PDFs prontos para consulta.` : `${files[0].name} pronto para consulta.`;
+    }
+
+    attachButton.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => {
+        addFiles(event.target.files);
+        fileInput.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            dropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            dropzone.classList.remove('dragover');
+        });
+    });
+
+    dropzone.addEventListener('drop', (event) => {
+        addFiles(event.dataTransfer.files);
+    });
+
+    suggestionButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            questionInput.value = button.dataset.question || button.textContent.trim();
+            questionInput.focus();
+            questionInput.dispatchEvent(new Event('input'));
+        });
+    });
+
+    function autosize() {
+        questionInput.style.height = 'auto';
+        questionInput.style.height = `${Math.min(questionInput.scrollHeight, 120)}px`;
+    }
+
+    questionInput.addEventListener('input', () => {
+        autosize();
+        sendButton.disabled = !questionInput.value.trim();
+    });
+
+    questionInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendButton.click();
+        }
+    });
+
+    // ---------------------------------------------------------
+    // INTEGRAÇÃO 2: ENVIAR A PERGUNTA E RECEBER A RESPOSTA RAG
+    // ---------------------------------------------------------
+    sendButton.addEventListener('click', async () => {
+        event.preventDefault();
+        const perguntaTexto = questionInput.value.trim();
+        if (!perguntaTexto) return;
+
+        // 1. Adiciona a pergunta do usuário na tela
+        addConversationItem('user', perguntaTexto);
+        
+        // 2. Limpa o input
+        questionInput.value = '';
+        autosize();
+        sendButton.disabled = true;
+
+        // 3. Adiciona o balão temporário do assistente (indicador de carregamento)
+        const respostaNode = addConversationItem('assistant', 'Consultando os regulamentos...');
+
+        // 4. Faz a requisição real para o Python
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ pergunta: perguntaTexto })
+            });
+
+            const data = await response.json();
+            
+            // 5. Substitui o texto temporário pela resposta real do LLM
+            respostaNode.textContent = data.resposta;
+
+        } catch (error) {
+            console.error("Erro na consulta:", error);
+            respostaNode.textContent = "Erro de conexão. Verifique se o servidor Python está rodando.";
+        }
+    });
+
+    autosize();
+    sendButton.disabled = true;
+	</script>
+</body>
+</html>

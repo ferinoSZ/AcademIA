@@ -1,7 +1,7 @@
 from sentence_transformers import CrossEncoder
 
 reranker = CrossEncoder(
-    "BAAI/bge-reranker-base"
+    "BAAI/bge-reranker-v2-m3"
 )
 # aqui ele vai receber a pergunta, os indices dos chunks mais similares e os chunks em si
 def rerank(pergunta, indices, chunks):
@@ -30,5 +30,5 @@ def rerank(pergunta, indices, chunks):
         key=lambda x: x["score"],
         reverse=True
     )
-
+    #fazer banco vetorial pra ler as embeddings do pdf
     return resultados

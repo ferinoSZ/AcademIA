@@ -6,14 +6,19 @@ import numpy as np
 from embeddings import gerar_embeddings
 from ingestao import carregar_chunks
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-PASTA_DADOS = Path("dados")
+PASTA_DADOS = BASE_DIR / "dados"
 ARQUIVO_CHUNKS = PASTA_DADOS / "chunks.json"
 ARQUIVO_EMBEDDINGS = PASTA_DADOS / "embeddings.npy"
-ARQUIVO_PDF = Path("documentos/regulamentos.pdf")
+
+ARQUIVO_PDF = BASE_DIR / "documentos" / "regulamentos.pdf"
 
 
 def banco_esta_atualizado():
+    if not ARQUIVO_PDF.exists():
+        raise FileNotFoundError(f"PDF não encontrado: {ARQUIVO_PDF}")
+
     if not ARQUIVO_CHUNKS.exists() or not ARQUIVO_EMBEDDINGS.exists():
         return False
 

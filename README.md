@@ -41,7 +41,7 @@ O **AcademIA** é um sistema de perguntas e respostas baseado em documentos PDF.
 
 ## Bibliotecas
 
-- PyPDF2
+- PyPDF
 - NumPy
 - Scikit-Learn
 - Transformers

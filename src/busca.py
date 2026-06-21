@@ -1,4 +1,4 @@
-from embeddings import gerar_embedding_pergunta
+from src.embeddings import gerar_embedding_pergunta
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 

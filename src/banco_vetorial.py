@@ -3,8 +3,8 @@ from pathlib import Path
 
 import numpy as np
 
-from embeddings import gerar_embeddings
-from ingestao import carregar_chunks
+from src.embeddings import gerar_embeddings
+from src.ingestao import carregar_chunks
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

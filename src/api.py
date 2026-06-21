@@ -4,22 +4,29 @@ import shutil
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-from banco_vetorial import (
+from src.banco_vetorial import (
     carregar_ou_criar_banco,
     ARQUIVO_PDF,
     ARQUIVO_CHUNKS,
     ARQUIVO_EMBEDDINGS
 )
 
-from busca import buscar
-from reranking import rerank
-from validacao import validar_resultado
-from resposta import gerar_resposta
+from src.busca import buscar
+from src.reranking import rerank
+from src.validacao import validar_resultado
+from src.resposta import gerar_resposta
 
 
 app = FastAPI()
 
+app.mount(
+    "/static",
+    StaticFiles(directory="src/frontend"),
+    name="static"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,6 +40,10 @@ app.add_middleware(
 class Pergunta(BaseModel):
     pergunta: str
 
+
+@app.get("/")
+async def home():
+    return FileResponse("src/frontend/index.html")
 
 @app.post("/api/upload")
 async def upload_pdf(

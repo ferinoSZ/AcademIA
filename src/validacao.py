@@ -1,4 +1,4 @@
-from utilitarios import pegar_palavras_importantes
+from src.utilitarios import pegar_palavras_importantes
 
 LIMIAR_SCORE = 0.0
 LIMIAR_COBERTURA = 0.35

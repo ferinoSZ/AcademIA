@@ -1,11 +1,12 @@
-import uvicorn
-
 from banco_vetorial import carregar_ou_criar_banco
 from busca import buscar
 from reranking import rerank
 from validacao import validar_resultado
 from resposta import gerar_resposta
 
+
+
+pergunta = "como funciona o achados e perdidos?"
 
 chunks, vetores_chunks = carregar_ou_criar_banco()
 

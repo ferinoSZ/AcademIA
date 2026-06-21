@@ -3,7 +3,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 
-def buscar(pergunta, vetores_chunks):
+def buscar(pergunta, vetores_chunks, quantidade=10):
     # variavel para armazenar o vetor da pergunta
     vetor_pergunta = gerar_embedding_pergunta(
         pergunta
@@ -13,9 +13,9 @@ def buscar(pergunta, vetores_chunks):
         vetor_pergunta,
         vetores_chunks
     )
-    # aqui ele vai pegar os indices dos 10 chunks mais similares a pergunta
+    # aqui ele vai pegar os indices dos chunks mais similares a pergunta
     indices = np.argsort(
         similaridades[0]
-    )[-10:]
+    )[-quantidade:][::-1]
 
     return indices

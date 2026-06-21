@@ -2,7 +2,7 @@ from src.utilitarios import pegar_palavras_importantes
 
 LIMIAR_SCORE = 0.0
 LIMIAR_COBERTURA = 0.35
-LIMIAR_MARGEM = 0.15
+LIMIAR_MARGEM = 0.05
 
 
 def calcular_cobertura(pergunta, chunk):

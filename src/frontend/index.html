@@ -1,102 +1,442 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Assistente Inteligente do Campus</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-	<link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistente Inteligente do Campus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            
+            --user-bubble: #1a56db;
+            --user-text: #ffffff;
+            --assistant-bubble: #f1f5f9;
+            --assistant-text: #1e293b;
+            
+            --radius-bubble: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; /* Prevent body scroll, handle scroll in chat area */
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100vw;
+        }
+
+        /* --- HEADER --- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 24px;
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            background-color: #1a56db;
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-text h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .header-text p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .btn-clear {
+            position: absolute;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-clear:hover {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        /* --- FILE BAR (TOP OF CHAT) --- */
+        .top-file-bar {
+            display: flex;
+            justify-content: center;
+            padding: 16px;
+            flex-shrink: 0;
+            min-height: 50px;
+        }
+
+        .file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #f1f5f9;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+        }
+
+        .file-chip-name {
+            font-weight: 600;
+        }
+
+        .file-chip-size {
+            color: var(--text-secondary);
+        }
+
+        .file-chip-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .file-chip-close:hover {
+            background-color: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        /* --- CHAT AREA --- */
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-behavior: smooth;
+        }
+
+        .chat-content {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* --- MESSAGE STYLES --- */
+        .message-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .message-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background-color: #f1f5f9;
+            color: var(--text-secondary);
+        }
+
+        .message-row.assistant .avatar {
+            background-color: #1a56db;
+            color: white;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 14px 18px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .message-row.user .message-bubble {
+            background-color: var(--user-bubble);
+            color: var(--user-text);
+            border-radius: var(--radius-bubble) var(--radius-bubble) 4px var(--radius-bubble);
+        }
+
+        .message-row.assistant .message-bubble {
+            background-color: var(--assistant-bubble);
+            color: var(--assistant-text);
+            border-radius: var(--radius-bubble) var(--radius-bubble) var(--radius-bubble) 4px;
+        }
+
+        /* --- HIGHLIGHTS NO TEXTO --- */
+        .highlight-art {
+            font-weight: 700;
+            color: #0f172a;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .highlight-inciso {
+            font-weight: 600;
+            display: block;
+            margin-top: 4px;
+            margin-left: 16px;
+        }
+
+        /* --- REFERENCES (CHIPS AT THE BOTTOM OF ASSISTANT MESSAGE) --- */
+        .message-references {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .ref-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .ref-chip strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* --- INPUT AREA --- */
+        .input-container {
+            padding: 0 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 1) 20%);
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: border-color 0.2s;
+        }
+        
+        .input-wrapper:focus-within {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-attach {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .btn-attach:hover {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        textarea {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            padding: 12px 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            max-height: 150px;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        .btn-send {
+            background-color: #8da4ef; /* Lighter blue when disabled */
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-bottom: 4px;
+        }
+
+        .btn-send:not(:disabled) {
+            background-color: #1a56db;
+        }
+
+        .btn-send:not(:disabled):hover {
+            background-color: #1e40af;
+        }
+        
+        .btn-send:not(:disabled):active {
+            transform: scale(0.95);
+        }
+
+        .input-helper {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .visually-hidden {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+        }
+
+    </style>
 </head>
 <body>
-	<div class="app">
-		<header class="topbar">
-			<div class="brand">
-				<div class="brand-mark" aria-hidden="true">
-					<img src="/static/img/academia-logo.png">
-				</div>
-				<div class="brand-text">
-					<h1>Assistente Inteligente do Campus</h1>
-					<p>Pergunte sobre editais, regulamentos e matrizes — respostas com fonte.</p>
-				</div>
-			</div>
-		</header>
+    <div class="app-container">
+        
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="header-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                </div>
+                <div class="header-text">
+                    <h1>Assistente Inteligente do Campus</h1>
+                    <p>Pergunte sobre editais, regulamentos e matrizes — respostas com fonte.</p>
+                </div>
+            </div>
+            <button class="btn-clear" id="clearBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Limpar
+            </button>
+        </header>
 
-		<main class="main">
-			<section class="hero" aria-label="Assistente de documentos">
-				<div class="hero-icon" aria-hidden="true">
-					<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
-						<path d="M14 2v5h5" />
-						<path d="M9 13h6" />
-						<path d="M9 17h6" />
-						<path d="M9 9h2" />
-					</svg>
-				</div>
+        <!-- FILE BAR -->
+        <div class="top-file-bar" id="fileStatusBar">
+            <!-- File chips appear here -->
+        </div>
 
-				<div class="hero-copy">
-					<p class="hero-label">Assistente de documentos</p>
-					<h2>Comece anexando um PDF</h2>
-					<p>Envie editais, regulamentos ou a matriz curricular. Depois faça perguntas em linguagem natural e as respostas citarão a fonte.</p>
-				</div>
+        <!-- CHAT AREA -->
+        <main class="chat-container" id="chatContainer">
+            <div class="chat-content" id="chatContent">
+                <!-- Welcome Message -->
+                <div class="message-row assistant">
+                    <div class="avatar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    </div>
+                    <div class="message-bubble">
+                        Olá! Anexe um edital, regulamento ou matriz curricular clicando no clipe abaixo. Depois, me faça uma pergunta e eu buscarei as respostas nos documentos enviados, citando a fonte.
+                    </div>
+                </div>
+            </div>
+        </main>
 
-				<div class="conversation-panel" id="conversationPanel" aria-live="polite"></div>
+        <!-- INPUT AREA -->
+        <footer class="input-container">
+            <div class="input-wrapper">
+                <button class="btn-attach" id="attachButton" title="Anexar PDF">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 1 1-7.78-7.78l8.49-8.49a3.5 3.5 0 1 1 4.95 4.95L9.81 18.05a1.5 1.5 0 1 1-2.12-2.12l8.84-8.84"></path></svg>
+                </button>
+                <textarea id="questionInput" rows="1" placeholder="Pergunte algo sobre os documentos..."></textarea>
+                <button class="btn-send" id="sendButton" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+            <div class="input-helper">As respostas são baseadas exclusivamente nos PDFs enviados. Pressione Enter para enviar, Shift+Enter para quebrar linha.</div>
+        </footer>
 
-				<div class="dropzone" id="dropzone">
-					Arraste e solte um PDF aqui ou use o botão de anexo.
-				</div>
+    </div>
 
-				<div class="upload-list" id="uploadList" aria-live="polite"></div>
+    <input class="visually-hidden" id="fileInput" type="file" accept="application/pdf" multiple />
 
-			</section>
-		</main>
-
-		<footer class="composer-wrap">
-			<div class="composer-card">
-				<div class="composer-row">
-					<button class="icon-button" id="attachButton" type="button" aria-label="Anexar PDF">
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 1 1-7.78-7.78l8.49-8.49a3.5 3.5 0 1 1 4.95 4.95L9.81 18.05a1.5 1.5 0 1 1-2.12-2.12l8.84-8.84" />
-						</svg>
-					</button>
-
-					<div class="input-shell">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<path d="M6 18V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13" />
-							<path d="M6 18h12" />
-							<path d="M9 7h6" />
-							<path d="M9 11h6" />
-						</svg>
-						<textarea id="questionInput" rows="1" placeholder="Pergunte algo sobre os documentos..."></textarea>
-					</div>
-
-					<button class="send-button" id="sendButton" type="button" aria-label="Enviar pergunta">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M22 2L11 13" />
-							<path d="M22 2l-7 20-4-9-9-4 20-7z" />
-						</svg>
-					</button>
-				</div>
-				<div class="helper">As respostas são baseadas exclusivamente nos PDFs enviados. Pressione Enter para enviar, Shift+Enter para quebrar linha.</div>
-			</div>
-		</footer>
-	</div>
-
-	<input class="visually-hidden" id="fileInput" type="file" accept="application/pdf" multiple />
-
-	<script>
+    <script>
     const fileInput = document.getElementById('fileInput');
     const attachButton = document.getElementById('attachButton');
-    const dropzone = document.getElementById('dropzone');
-    const uploadList = document.getElementById('uploadList');
-    const conversationPanel = document.getElementById('conversationPanel');
+    const fileStatusBar = document.getElementById('fileStatusBar');
+    const chatContainer = document.getElementById('chatContainer');
+    const chatContent = document.getElementById('chatContent');
     const questionInput = document.getElementById('questionInput');
     const sendButton = document.getElementById('sendButton');
-    const suggestionButtons = document.querySelectorAll('.suggestion');
+    const clearBtn = document.getElementById('clearBtn');
 
     const files = [];
-
     const BASE_URL = "http://localhost:8000";
 
     function formatSize(bytes) {
@@ -111,77 +451,150 @@
         return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
     }
 
-    function renderFiles() {
-        uploadList.innerHTML = '';
+    // Scroll to bottom helper
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
-        if (!files.length) {
-            return;
+    // Clear chat helper
+    clearBtn.addEventListener('click', () => {
+        // Keeps only the first welcome message
+        while (chatContent.children.length > 1) {
+            chatContent.removeChild(chatContent.lastChild);
         }
+    });
 
-        files.forEach((file) => {
-            const item = document.createElement('div');
-            item.className = 'upload-item';
-            item.innerHTML = `
-                <div class="upload-meta">
-                    <strong title="${file.name}">${file.name}</strong>
-                    <span>${formatSize(file.size)} · PDF carregado</span>
-                </div>
-                <div class="chip" id="status-${file.name.replace(/[^a-zA-Z0-9]/g, '')}">Enviando...</div>
-            `;
-            uploadList.appendChild(item);
+    // --- NOVA INTEGRAÇÃO: Função para exibir o arquivo no topo da tela ---
+    function renderTopFile(file) {
+        // Limpa a barra do topo para focar apenas nos arquivos ativos
+        fileStatusBar.innerHTML = '';
+        
+        const chip = document.createElement('div');
+        chip.className = 'file-chip';
+        chip.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span class="file-chip-name">${file.name}</span>
+            <span class="file-chip-size">${formatSize(file.size)}</span>
+            <button class="file-chip-close" title="Remover"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        `;
+        
+        chip.querySelector('.file-chip-close').addEventListener('click', () => {
+            fileStatusBar.innerHTML = ''; // Remove da UI visualmente (Backend needs logic if deleting)
         });
+
+        fileStatusBar.appendChild(chip);
     }
 
-    function addConversationItem(role, text) {
-        conversationPanel.classList.add('is-visible');
-        const item = document.createElement('div');
-        item.className = `conversation-item ${role}`;
-        item.textContent = text;
-        conversationPanel.appendChild(item);
-        conversationPanel.scrollTop = conversationPanel.scrollHeight;
-        return item; // Retornamos o elemento para podermos alterá-lo depois (ex: tirar o "Pensando...")
-    }
-
+    // Função real para enviar o arquivo para o backend Python
     async function uploadFileToBackend(file) {
         const formData = new FormData();
         formData.append("file", file);
-
-        const statusChip = document.getElementById(`status-${file.name.replace(/[^a-zA-Z0-9]/g, '')}`);
 
         try {
             const response = await fetch(`${BASE_URL}/api/upload`, {
                 method: 'POST',
                 body: formData
             });
-            
             const data = await response.json();
-            if(statusChip) statusChip.textContent = "Pronto para RAG";
-            console.log(data.mensagem);
+            console.log(data.mensagem || "Upload concluído com sucesso.");
         } catch (error) {
             console.error("Erro no upload:", error);
-            if(statusChip) {
-                statusChip.textContent = "Erro no envio";
-                statusChip.style.backgroundColor = "#ffcccc"; // Feedback visual de erro
-            }
+            // Poderíamos adicionar um toast de erro aqui no futuro
         }
+    }
+
+    /* ------------------------------------------------------------------
+       NOVA LÓGICA DE FORMATAÇÃO: Processa múltiplas páginas e chips dinâmicos
+    ------------------------------------------------------------------- */
+    function formatAssistantResponse(text) {
+        let cleanText = text;
+        const extractedReferences = [];
+
+        // Expressão regular para encontrar todas as ocorrências de Título e Página em qualquer lugar do texto
+        // Funciona para "Título: Reg-Geral Página: 13" ou "Título: Edital Página: 5"
+        const refRegex = /Título:\s*(.*?)\s*Página:\s*(\d+)/gi;
+        let match;
+
+        // Loop para extrair TODAS as fontes que o python enviar na string
+        while ((match = refRegex.exec(text)) !== null) {
+            extractedReferences.push({
+                title: match[1].trim(),
+                page: match[2].trim()
+            });
+        }
+
+        // Remove os cabeçalhos de título/página do texto corrido para não poluir a leitura
+        cleanText = cleanText.replace(/Título:\s*(.*?)\s*Página:\s*(\d+)/gi, '').trim();
+
+        // Destaca os "Artigos" (ex: Art. 43.)
+        cleanText = cleanText.replace(/(Art\.\s*\d+[º\.\-]?)/gi, '<span class="highlight-art">$1</span>');
+        
+        // Destaca os Incisos Romanos (ex: I-, II-) jogando eles para a linha de baixo
+        cleanText = cleanText.replace(/(I{1,3}|IV|V|VI{1,3}|IX|X|XI{1,3})\s*-/g, '<span class="highlight-inciso">$1 -</span>');
+
+        // Formata o HTML do balão de mensagem
+        let htmlContent = `<div>${cleanText}</div>`;
+
+        // Se encontrou fontes, adiciona as "pílulas" (chips) no rodapé do balão
+        if (extractedReferences.length > 0) {
+            htmlContent += `<div class="message-references">`;
+            
+            // Remove duplicatas caso o python envie a mesma página repetida
+            const uniqueRefs = extractedReferences.filter((v, i, a) => a.findIndex(t => (t.title === v.title && t.page === v.page)) === i);
+            
+            uniqueRefs.forEach(ref => {
+                htmlContent += `
+                    <div class="ref-chip">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <strong>${ref.title}</strong> • pág. ${ref.page}
+                    </div>
+                `;
+            });
+            htmlContent += `</div>`;
+        }
+
+        return htmlContent;
+    }
+    /* ------------------------------------------------------------------ */
+
+
+    function addConversationItem(role, contentHTML) {
+        const row = document.createElement('div');
+        row.className = `message-row ${role}`;
+        
+        // Determina o ícone do avatar com base em quem está falando
+        const avatarIcon = role === 'user' 
+            ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`
+            : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
+
+        row.innerHTML = `
+            <div class="avatar">${avatarIcon}</div>
+            <div class="message-bubble">${contentHTML}</div>
+        `;
+        
+        chatContent.appendChild(row);
+        scrollToBottom();
+        return row.querySelector('.message-bubble'); // Retorna o balão para atualizarmos depois
     }
 
     function addFiles(selectedFiles) {
         const pdfFiles = Array.from(selectedFiles).filter((file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
-        if (!pdfFiles.length) {
-            dropzone.textContent = 'Somente arquivos PDF são aceitos.';
-            return;
-        }
+        if (!pdfFiles.length) return;
 
         pdfFiles.forEach((file) => {
-            if (!files.some((existing) => existing.name === file.name && existing.size === file.size)) {
+            if (!files.some((existing) => existing.name === file.name)) {
                 files.push(file);
-                renderFiles(); // Renderiza na tela primeiro
-                uploadFileToBackend(file); // Dispara o envio para o Python em segundo plano
+                
+                // 1. Atualiza a barra no topo
+                renderTopFile(file); 
+                
+                // 2. Adiciona uma mensagem de ação do usuário no chat (Igual ao seu print)
+                addConversationItem('user', `Anexei <strong>${file.name}</strong> (${formatSize(file.size)})`);
+                
+                // 3. Envia para a API
+                uploadFileToBackend(file); 
             }
         });
-
-        dropzone.textContent = files.length > 1 ? `${files.length} PDFs prontos para consulta.` : `${files[0].name} pronto para consulta.`;
     }
 
     attachButton.addEventListener('click', () => fileInput.click());
@@ -190,37 +603,10 @@
         fileInput.value = '';
     });
 
-    ['dragenter', 'dragover'].forEach((eventName) => {
-        dropzone.addEventListener(eventName, (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            dropzone.classList.add('dragover');
-        });
-    });
-
-    ['dragleave', 'drop'].forEach((eventName) => {
-        dropzone.addEventListener(eventName, (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            dropzone.classList.remove('dragover');
-        });
-    });
-
-    dropzone.addEventListener('drop', (event) => {
-        addFiles(event.dataTransfer.files);
-    });
-
-    suggestionButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            questionInput.value = button.dataset.question || button.textContent.trim();
-            questionInput.focus();
-            questionInput.dispatchEvent(new Event('input'));
-        });
-    });
-
+    // Auto-resize do campo de texto
     function autosize() {
         questionInput.style.height = 'auto';
-        questionInput.style.height = `${Math.min(questionInput.scrollHeight, 120)}px`;
+        questionInput.style.height = `${Math.min(questionInput.scrollHeight, 150)}px`;
     }
 
     questionInput.addEventListener('input', () => {
@@ -231,12 +617,11 @@
     questionInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            sendButton.click();
+            if(!sendButton.disabled) sendButton.click();
         }
     });
 
     sendButton.addEventListener('click', async () => {
-        event.preventDefault();
         const perguntaTexto = questionInput.value.trim();
         if (!perguntaTexto) return;
 
@@ -246,29 +631,32 @@
         autosize();
         sendButton.disabled = true;
 
-        const respostaNode = addConversationItem('assistant', 'Consultando os regulamentos...');
+        const bubbleNode = addConversationItem('assistant', 'Pensando...');
 
         try {
+            // Chamada real da API
             const response = await fetch(`${BASE_URL}/api/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pergunta: perguntaTexto })
             });
-
-            const data = await response.json();
             
-            respostaNode.textContent = data.resposta;
+            const data = await response.json();
+            const respostaRaw = data.resposta;
+            
+            // Passa no nosso formatador para separar o texto corrido das fontes
+            const respostaFormatada = formatAssistantResponse(respostaRaw);
+            bubbleNode.innerHTML = respostaFormatada;
 
         } catch (error) {
             console.error("Erro na consulta:", error);
-            respostaNode.textContent = "Erro de conexão. Verifique se o servidor Python está rodando.";
+            bubbleNode.innerHTML = "Erro de conexão. Verifique se o servidor Python (localhost:8000) está rodando.";
         }
+        
+        scrollToBottom();
     });
 
     autosize();
-    sendButton.disabled = true;
-	</script>
+    </script>
 </body>
 </html>

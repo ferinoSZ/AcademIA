@@ -171,15 +171,6 @@ Resposta
 
 ---
 
-# 📸 Interface
-
-### Principais recursos
-
-- Upload de PDFs;
-- Respostas fundamentadas nos documentos.
-
----
-
 # 👨‍💻 Desenvolvedores
 
 ### Wesley Ferino de Carvalho

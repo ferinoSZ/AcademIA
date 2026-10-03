@@ -171,12 +171,10 @@ Resposta
 
 ---
 
-# 👨‍💻 Desenvolvedores
+# 👨‍💻 Desenvolvedor
 
 ### Wesley Ferino de Carvalho
-### Renan Queiroz Chavez
-### Eduardo Rank
-### Kauan Rogaleski
+
 
 - 📧 Email: weslleycontas09@gmail.com
 - 💼 LinkedIn: https://www.linkedin.com/in/wesley-ferino-190a83309
